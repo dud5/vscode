@@ -243,6 +243,13 @@ export class DebugService extends ee.EventEmitter implements debug.IDebugService
 			this.getThreadData(threadId).done(() => {
 				let thread = this.model.getThreads()[threadId];
 
+				let threadIds = "";
+				for (let ref in this.model.getThreads()) {
+					threadIds += " " + this.model.getThreads()[ref].threadId;
+				}
+
+				console.log("Recevied stopped event. The considered threads are " + threadIds);
+
 				this.model.rawUpdate({
 					threadId: threadId,
 					stoppedDetails: event.body,
@@ -274,7 +281,9 @@ export class DebugService extends ee.EventEmitter implements debug.IDebugService
 
 		this.toDisposeOnSessionEnd.push(this.session.addListener2(debug.SessionEvents.THREAD, (event: DebugProtocol.ThreadEvent) => {
 			if (event.body.reason === 'started') {
+				console.log("new thread has started " + event.body.threadId);
 				this.session.threads().done((result) => {
+					console.log("now received the info about the new thread " + event.body.threadId);
 					const thread = result.body.threads.filter(thread => thread.id === event.body.threadId).pop();
 					if (thread) {
 						this.model.rawUpdate({
